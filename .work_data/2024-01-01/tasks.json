@@ -1,0 +1,33 @@
+{
+  "completed": [
+    {
+      "id": 1,
+      "text": "示例任务 - 已完成",
+      "timestamp": "2024-01-01T10:00:00",
+      "date": "2024-01-01",
+      "completed": true,
+      "remind_at": null
+    }
+  ],
+  "in_progress": [
+    {
+      "id": 2,
+      "text": "示例任务 - 进行中",
+      "timestamp": "2024-01-01T11:00:00",
+      "date": "2024-01-01",
+      "completed": false,
+      "remind_at": null
+    }
+  ],
+  "upcoming": [
+    {
+      "id": 3,
+      "text": "示例任务 - 即将做",
+      "timestamp": "2024-01-01T12:00:00",
+      "date": "2024-01-01",
+      "completed": false,
+      "remind_at": "2024-01-01T15:00:00"
+    }
+  ],
+  "trash": []
+}
