@@ -2,6 +2,8 @@
 
 > 可爱风格的桌面任务管理工具，支持任务追踪、定时提醒、自动日报生成
 
+<img width="399" height="679" alt="image" src="https://github.com/user-attachments/assets/d695357a-50f0-4b7a-b202-9ec5a6e879c8" />
+
 ---
 
 ## ✨ 功能特性
