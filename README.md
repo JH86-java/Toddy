@@ -160,6 +160,71 @@ python -c "import tkinter; print('OK')"
 
 ---
 
+## 📦 打包与分发
+
+项目提供两种打包方式，适用于不同场景：
+
+### 方式1：install.py - 首次安装包
+
+**用途**：分发给新用户，包含完整的项目结构和空的数据目录
+
+**生成方法**：
+```bash
+python install.py
+```
+
+**生成的内容**（`target/` 文件夹）：
+- ✅ `smart_assistant.py` - 主程序
+- ✅ `run.bat`, `stop.bat` - 启动/停止脚本
+- ✅ `img/` - 图标资源
+- ✅ `.work_data/settings.json` - 默认配置
+- ✅ `workLog/` - 空的日报目录
+- ✅ `INSTALL_GUIDE.md` - 安装指南
+
+**适用场景**：
+- 新用户首次安装
+- 完整部署到新的电脑
+
+---
+
+### 方式2：safe_update.py - 安全更新工具
+
+**用途**：更新已有用户的版本，只替换程序文件，保护用户数据
+
+**使用方法**：
+```bash
+python safe_update.py <安装目录> <新target目录>
+```
+
+**示例**：
+```bash
+python safe_update.py "D:\Hermes\deskTop\WorkSpeace\work_tracker" "D:\AISkill\Toddy\target"
+```
+
+**功能**：
+1. 自动备份用户的 `.work_data/` 和 `workLog/`
+2. 只更新核心程序文件（smart_assistant.py, run.bat, stop.bat, img/）
+3. 保留用户的所有任务数据和配置
+4. 提供备份位置，方便回滚
+
+**适用场景**：
+- 更新已有用户的版本
+- 修复bug或添加新功能后分发
+
+---
+
+### ⚠️ 重要提示
+
+| 场景 | 推荐方式 | 注意事项 |
+|------|---------|---------|
+| 新用户首次安装 | `install.py` | 直接复制 target 文件夹即可 |
+| 更新已有用户 | `safe_update.py` | **不要**直接用 target 覆盖整个安装目录 |
+| 手动更新 | - | 只复制程序文件，保留 `.work_data/` |
+
+**❌ 错误做法**：用新生成的 `target` 文件夹直接覆盖用户的整个安装目录，这会导致用户数据丢失！
+
+---
+
 ## 📝 数据备份
 
 所有数据存储在 `.work_data/` 目录下，备份此目录即可保留所有任务和配置。

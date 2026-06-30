@@ -136,12 +136,34 @@ def copy_core_files():
         else:
             print(f"   ⚠️  {foldername}/ (不存在，跳过)")
     
-    # 注意：不复制 .work_data 和 workLog，这些是用户数据
-    # 只创建空目录结构，供首次安装使用
-    print("\n📝 注意：用户数据目录已跳过")
-    print("   - .work_data/ (用户任务数据)")
-    print("   - workLog/ (用户日报)")
-    print("   更新时请保留这些文件夹！")
+    # 创建 .work_data 目录（空的数据目录，供首次安装使用）
+    data_dir = TARGET_DIR / ".work_data"
+    data_dir.mkdir(exist_ok=True)
+    
+    # 创建默认的 settings.json
+    settings_file = data_dir / "settings.json"
+    default_settings = {
+        "reminder_time": "18:00",
+        "auto_summarize": True,
+        "report_dir": str(TARGET_DIR / "workLog"),
+        "auto_start": False,
+        "last_sync_date": datetime.now().date().isoformat()
+    }
+    
+    with open(settings_file, 'w', encoding='utf-8') as f:
+        json.dump(default_settings, f, ensure_ascii=False, indent=2)
+    
+    print(f"   ✅ .work_data/settings.json (默认配置)")
+    copied_count += 1
+    
+    # 创建 workLog 目录
+    worklog_dir = TARGET_DIR / "workLog"
+    worklog_dir.mkdir(exist_ok=True)
+    print(f"   ✅ workLog/")
+    copied_count += 1
+    
+    print("\n💡 提示：此安装包包含空的数据目录，适合首次安装")
+    print("   如需更新已有版本，请使用 safe_update.py 工具")
     
     print("=" * 60)
     print(f"✅ 打包完成！共复制 {copied_count} 个文件/文件夹")
