@@ -136,31 +136,12 @@ def copy_core_files():
         else:
             print(f"   ⚠️  {foldername}/ (不存在，跳过)")
     
-    # 创建 .work_data 目录（空的数据目录）
-    data_dir = TARGET_DIR / ".work_data"
-    data_dir.mkdir(exist_ok=True)
-    
-    # 创建默认的 settings.json
-    settings_file = data_dir / "settings.json"
-    default_settings = {
-        "reminder_time": "18:00",
-        "auto_summarize": True,
-        "report_dir": str(TARGET_DIR / "workLog"),
-        "auto_start": False,
-        "last_sync_date": datetime.now().date().isoformat()
-    }
-    
-    with open(settings_file, 'w', encoding='utf-8') as f:
-        json.dump(default_settings, f, ensure_ascii=False, indent=2)
-    
-    print(f"   ✅ .work_data/settings.json (默认配置)")
-    copied_count += 1
-    
-    # 创建 workLog 目录
-    worklog_dir = TARGET_DIR / "workLog"
-    worklog_dir.mkdir(exist_ok=True)
-    print(f"   ✅ workLog/")
-    copied_count += 1
+    # 注意：不复制 .work_data 和 workLog，这些是用户数据
+    # 只创建空目录结构，供首次安装使用
+    print("\n📝 注意：用户数据目录已跳过")
+    print("   - .work_data/ (用户任务数据)")
+    print("   - workLog/ (用户日报)")
+    print("   更新时请保留这些文件夹！")
     
     print("=" * 60)
     print(f"✅ 打包完成！共复制 {copied_count} 个文件/文件夹")
@@ -180,12 +161,29 @@ def create_readme():
 3. 桌面会出现一个可爱的樱花图标 🌸
 
 ### 更新已有安装
-如果你已经有旧版本的 Toddy：
-1. **备份你的数据**：复制 `.work_data` 文件夹到安全位置
-2. 用新版本的 `target` 文件夹中的文件替换旧版本的文件
-   - 直接覆盖所有文件即可
-   - 你的任务数据在 `.work_data` 文件夹中，不会被影响
-3. 重新启动程序
+
+**⚠️ 重要：保护你的数据！**
+
+有两种更新方式：
+
+#### 方法A：安全更新（推荐）✅
+1. **备份数据**：复制 `.work_data` 文件夹到安全位置
+2. 从新的 `target` 文件夹中，**只复制以下文件**到你的安装目录：
+   - `smart_assistant.py`
+   - `run.bat`
+   - `stop.bat`
+   - `img/` 文件夹
+3. **不要覆盖** `.work_data/` 和 `workLog/` 文件夹
+4. 重新启动程序
+
+#### 方法B：完整替换（需谨慎）
+1. **备份整个安装目录**（包括 `.work_data`）
+2. 删除旧的安装目录
+3. 将新的 `target` 文件夹复制到原位置
+4. 从备份中恢复 `.work_data` 文件夹
+5. 重新启动程序
+
+**❌ 错误做法**：直接用 `target` 文件夹覆盖整个安装目录，这会丢失所有任务数据！
 
 ## 🎯 主要功能
 
