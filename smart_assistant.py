@@ -93,6 +93,12 @@ class SmartDesktopAssistant:
         # 加载当天任务
         self.tasks = self._load_tasks(self.current_view_date)
         
+        # 性能修复：确保 last_sync_date 有默认值，避免重复同步
+        if "last_sync_date" not in self.settings:
+            self.settings["last_sync_date"] = date.today().isoformat()
+            self._save_settings()
+            print(f"📝 初始化 last_sync_date 为今天: {self.settings['last_sync_date']}")
+        
         # 窗口配置（必须在同步之前，因为同步提示需要屏幕尺寸）
         self.window_width = 400
         self.window_height = 680
@@ -391,14 +397,19 @@ class SmartDesktopAssistant:
         
         try:
             # 收集所有历史未完成任务（从 last_sync_date 当天开始）
+            # 修复：跳过已完成的任务，只同步真正未完成的任务
             all_unfinished = []
             collect_d = last_sync_date
             while collect_d < today:
                 day_tasks = self._load_tasks(collect_d.isoformat())
                 for task in day_tasks.get("in_progress", []):
-                    all_unfinished.append(("in_progress", task))
+                    # 跳过已标记为完成的任务
+                    if not task.get("completed", False):
+                        all_unfinished.append(("in_progress", task))
                 for task in day_tasks.get("upcoming", []):
-                    all_unfinished.append(("upcoming", task))
+                    # 跳过已标记为完成的任务
+                    if not task.get("completed", False):
+                        all_unfinished.append(("upcoming", task))
                 collect_d = collect_d + timedelta(days=1)
             
             # 将所有历史未完成任务追加到今天
@@ -2574,6 +2585,9 @@ class SmartDesktopAssistant:
     def quit_app(self):
         self._save_tasks()
         self._stop_event.set()
+        # 修复：退出时更新 last_sync_date 为今天，避免下次启动时重复同步
+        self.settings["last_sync_date"] = date.today().isoformat()
+        self._save_settings()
         if self._cute_confirm("退出", "确定要关闭智能助手吗？\n下次见~ 👋"):
             self.root.destroy()
             sys.exit(0)
