@@ -226,7 +226,10 @@ patch_data.zip
 # Local tools (not for distribution)
 cleanup.py
 
-# Development and temporary files
-*.log
+# Nuitka build artifacts
+dist/
+*.onefile-build/
+*.build/
+nuitka-crash-report.xml
 .DS_Store
 Thumbs.db
