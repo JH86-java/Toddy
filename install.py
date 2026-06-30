@@ -8,13 +8,14 @@ Toddy 安装打包工具
 使用方法：
 1. 双击运行此脚本
 2. 使用上下键选择模式，回车确认
-3. 自动生成 target 文件夹并压缩为 zip
+3. 自动生成 target 文件夹并压缩为 zip（ZIP 放在 target 目录下）
 """
 
 import os
 import sys
 import shutil
 import zipfile
+import json
 from pathlib import Path
 
 
@@ -30,6 +31,45 @@ def clear_target(target_dir: Path):
         shutil.rmtree(target_dir)
     else:
         print_log("target 目录不存在，无需清理")
+
+
+def merge_settings(user_settings_path: Path, default_settings_path: Path, output_path: Path):
+    """
+    智能合并 settings.json
+    - 保留用户的所有配置
+    - 添加默认配置中新增的字段
+    - 不覆盖用户已有的配置值
+    """
+    # 读取用户配置
+    user_settings = {}
+    if user_settings_path.exists():
+        try:
+            with open(user_settings_path, 'r', encoding='utf-8') as f:
+                user_settings = json.load(f)
+            print_log(f"   读取用户配置: {len(user_settings)} 个字段")
+        except Exception as e:
+            print_log(f"   警告: 读取用户配置失败 ({e})，使用空配置")
+    
+    # 读取默认配置
+    default_settings = {}
+    if default_settings_path.exists():
+        try:
+            with open(default_settings_path, 'r', encoding='utf-8') as f:
+                default_settings = json.load(f)
+            print_log(f"   读取默认配置: {len(default_settings)} 个字段")
+        except Exception as e:
+            print_log(f"   警告: 读取默认配置失败 ({e})，使用空配置")
+    
+    # 合并：以用户配置为基础，添加默认配置中缺失的字段
+    merged_settings = {**default_settings, **user_settings}
+    
+    # 写入合并后的配置
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(merged_settings, f, ensure_ascii=False, indent=2)
+    
+    print_log(f"   合并完成: {len(merged_settings)} 个字段 (用户:{len(user_settings)}, 新增:{len(default_settings) - len(set(default_settings.keys()) & set(user_settings.keys()))})")
+    
+    return merged_settings
 
 
 def create_target_structure(target_dir: Path, include_data: bool):
@@ -76,6 +116,13 @@ def create_target_structure(target_dir: Path, include_data: bool):
                 shutil.rmtree(work_data_dst)
             shutil.copytree(work_data_src, work_data_dst)
             print_log(f"   复制: .work_data/ (包含任务数据)")
+            
+            # 智能合并 settings.json
+            user_settings = work_data_dst / "settings.json"
+            default_settings = Path(__file__).parent / ".work_data" / "settings.json"
+            if user_settings.exists() and default_settings.exists():
+                print_log("   智能合并 settings.json...")
+                merge_settings(user_settings, default_settings, user_settings)
         else:
             print_log(f"   .work_data 不存在，创建空目录")
             work_data_dst.mkdir(parents=True, exist_ok=True)
@@ -83,7 +130,7 @@ def create_target_structure(target_dir: Path, include_data: bool):
             settings_file = work_data_dst / "settings.json"
             if not settings_file.exists():
                 with open(settings_file, 'w', encoding='utf-8') as f:
-                    f.write('{}\n')
+                    json.dump({}, f, ensure_ascii=False, indent=2)
         
         # 复制 workLog
         worklog_src = Path(__file__).parent / "workLog"
@@ -105,7 +152,7 @@ def create_target_structure(target_dir: Path, include_data: bool):
         # 创建默认 settings.json
         settings_file = work_data_dst / "settings.json"
         with open(settings_file, 'w', encoding='utf-8') as f:
-            f.write('{}\n')
+            json.dump({}, f, ensure_ascii=False, indent=2)
         print_log(f"   创建: .work_data/ (空目录 + 默认配置)")
         
         # 创建空的 workLog
@@ -114,21 +161,24 @@ def create_target_structure(target_dir: Path, include_data: bool):
         print_log(f"   创建: workLog/ (空目录)")
 
 
-def create_zip_archive(target_dir: Path, output_dir: Path):
-    """将 target 目录压缩为 zip 文件"""
+def create_zip_archive(target_dir: Path):
+    """将 target 目录压缩为 zip 文件（放在 target 目录下）"""
     print_log(f"开始压缩...")
     
     # 生成 zip 文件名（带时间戳）
     from datetime import datetime
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     zip_filename = f"Toddy_{timestamp}.zip"
-    zip_path = output_dir / zip_filename
+    zip_path = target_dir / zip_filename
     
     # 创建 zip 文件
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(target_dir):
             for file in files:
                 file_path = Path(root) / file
+                # 跳过 zip 文件本身
+                if file.endswith('.zip'):
+                    continue
                 arcname = file_path.relative_to(target_dir.parent)
                 zipf.write(file_path, arcname)
                 print_log(f"   添加: {arcname}")
@@ -220,9 +270,9 @@ def main():
         print_log("\n步骤 2/4: 生成安装包")
         create_target_structure(target_dir, include_data)
         
-        # 步骤4: 压缩为 zip
+        # 步骤4: 压缩为 zip（放在 target 目录下）
         print_log("\n步骤 3/4: 压缩为 ZIP")
-        zip_path = create_zip_archive(target_dir, project_root)
+        zip_path = create_zip_archive(target_dir)
         
         # 完成
         print_log("\n步骤 4/4: 完成")
@@ -234,6 +284,7 @@ def main():
         print("\n提示:")
         print("   - 新包模式：适合首次安装的用户")
         print("   - 迁移模式：适合已有数据的用户升级")
+        print("   - settings.json 已智能合并，保留用户配置")
         print("   - 请勿直接覆盖安装目录，请使用压缩包内的文件")
         print("\n" + "=" * 60)
         
