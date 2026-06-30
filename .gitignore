@@ -224,3 +224,9 @@ patch_data.zip
 
 # Toddy installer and build artifacts
 target/
+cleanup.py
+
+# Development and temporary files
+*.log
+.DS_Store
+Thumbs.db
