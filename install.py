@@ -7,7 +7,7 @@ Toddy 安装打包工具
 
 使用方法：
 1. 双击运行此脚本
-2. 选择打包模式（键盘上下选择）
+2. 使用 ↑↓ 键选择模式，回车确认
 3. 自动生成 target 文件夹并压缩为 zip
 """
 
@@ -138,26 +138,74 @@ def create_zip_archive(target_dir: Path, output_dir: Path):
 
 
 def interactive_menu():
-    """交互式菜单选择"""
-    print("\n" + "=" * 60)
-    print("🔄 Toddy 安装打包工具")
-    print("=" * 60)
-    print("\n请选择打包模式（使用 ↑↓ 键选择，回车确认）:\n")
-    print("  > 1. 新包模式（不包含用户数据）")
-    print("    2. 迁移模式（包含用户数据）\n")
-    print("=" * 60)
+    """交互式菜单选择（支持上下键）"""
+    options = [
+        "🆕 新包模式（不包含用户数据）",
+        "📦 迁移模式（包含用户数据）"
+    ]
     
-    # 简单的键盘输入
-    try:
-        choice = input("\n请输入选项 (1 或 2，默认 1): ").strip()
-    except (EOFError, KeyboardInterrupt):
-        print("\n\n❌ 操作已取消")
-        sys.exit(0)
+    selected = 0  # 默认选中第一个
     
-    if choice == '2':
-        return True  # 迁移模式
+    # Windows 需要 msvcrt
+    if os.name == 'nt':
+        import msvcrt
     else:
-        return False  # 新包模式（默认）
+        import tty
+        import termios
+    
+    def clear_screen():
+        os.system('cls' if os.name == 'nt' else 'clear')
+    
+    def render_menu():
+        clear_screen()
+        print("\n" + "=" * 60)
+        print("🔄 Toddy 安装打包工具")
+        print("=" * 60)
+        print("\n请使用 ↑↓ 键选择，回车确认:\n")
+        
+        for i, option in enumerate(options):
+            if i == selected:
+                print(f"  ▶ {option}")
+            else:
+                print(f"    {option}")
+        
+        print("\n" + "=" * 60)
+    
+    def get_key():
+        """获取按键"""
+        if os.name == 'nt':
+            return msvcrt.getch()
+        else:
+            fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(fd)
+            try:
+                tty.setraw(fd)
+                ch = sys.stdin.read(1)
+                if ch == '\x1b':  # ESC sequence
+                    ch2 = sys.stdin.read(1)
+                    if ch2 == '[':
+                        ch3 = sys.stdin.read(1)
+                        return f'\x1b[{ch3}'
+                return ch
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    
+    render_menu()
+    
+    while True:
+        key = get_key()
+        
+        # 上箭头
+        if key == b'\xe0H' or key == '\x1b[A':
+            selected = (selected - 1) % len(options)
+            render_menu()
+        # 下箭头
+        elif key == b'\xe0P' or key == '\x1b[B':
+            selected = (selected + 1) % len(options)
+            render_menu()
+        # 回车
+        elif key == b'\r' or key == '\r' or key == '\n':
+            return selected == 1  # True = 迁移模式, False = 新包模式
 
 
 def main():
