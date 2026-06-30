@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Toddy work data (personal task data, should not be committed)
+.work_data/
+*.bak
+patch_data.zip
