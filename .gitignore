@@ -223,9 +223,9 @@ __marimo__/
 patch_data.zip
 
 # Toddy installer and build artifacts
-target/
+# Local tools (not for distribution)
 cleanup.py
-safe_update.py
+safe_update.bat
 
 # Development and temporary files
 *.log
