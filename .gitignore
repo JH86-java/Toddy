@@ -221,3 +221,6 @@ __marimo__/
 .work_data/
 *.bak
 patch_data.zip
+
+# Toddy installer and build artifacts
+target/
