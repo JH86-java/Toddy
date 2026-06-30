@@ -1154,6 +1154,7 @@ class SmartDesktopAssistant:
                 self._switch_date(date.today().isoformat())
             self.view_mode_btn.config(text="📅 周")
             self.year_label_var.set("")
+            # 修复：切换回天视图时，确保输入框和添加按钮正确显示
             self.update_input_ui_for_tab()
     
     def prev_day(self):
@@ -1622,7 +1623,20 @@ class SmartDesktopAssistant:
     # ==================== UI 更新 ====================
     
     def update_input_ui_for_tab(self):
+        """根据当前Tab和视图模式更新输入UI"""
         current_tab = self.selected_tab.get()
+        
+        # 周视图不显示输入框和添加按钮
+        if self.view_mode == "week":
+            if self.task_entry.winfo_ismapped():
+                self.task_entry.pack_forget()
+            if self.add_btn.winfo_ismapped():
+                self.add_btn.pack_forget()
+            if self.clear_trash_btn.winfo_ismapped():
+                self.clear_trash_btn.pack_forget()
+            return
+        
+        # 天视图：根据Tab显示不同的UI
         if current_tab == "🗑️ 回收站":
             if self.task_entry.winfo_ismapped():
                 self.task_entry.pack_forget()
@@ -1631,6 +1645,7 @@ class SmartDesktopAssistant:
             if not self.clear_trash_btn.winfo_ismapped():
                 self.clear_trash_btn.pack(side=tk.RIGHT)
         else:
+            # 修复：确保输入框和添加按钮正确显示
             if not self.task_entry.winfo_ismapped():
                 self.task_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5), ipady=5)
             if not self.add_btn.winfo_ismapped():
