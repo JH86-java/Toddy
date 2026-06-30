@@ -225,7 +225,6 @@ patch_data.zip
 # Toddy installer and build artifacts
 # Local tools (not for distribution)
 cleanup.py
-safe_update.bat
 
 # Development and temporary files
 *.log
